@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>AWB - PDF</title>
+
+</head>
+
+<body>
+  
+    {%- assign vars = "gross_weight,chargeable_weight,rate_charge,total,weight_charge_prepaid,weight_charge_collect,valuation_charge_prepaid,valuation_charge_collect,tax_prepaid,tax_collect,total_charges_agent_prepaid,total_charges_carrier_prepaid,total_charges_agent_collect,total_charges_carrier_collect,total_prepaid,total_collect" | split: "," -%} 
+    {%- assign formatted_map = "{" -%}
+    
+    {%- for v in vars -%}
+      {%- assign raw = [v] | replace: ",", "." -%}
+      {%- assign n = raw | plus: 0 -%}
+      {%- assign inteiro = n | floor -%}
+      {%- assign dec = n | minus: inteiro | times: 100 | round -%}
+    
+      {%- if dec == 100 -%}
+        {%- assign inteiro = inteiro | plus: 1 -%}
+        {%- assign dec = 0 -%}
+      {%- endif -%}
+      {%- if dec < 10 -%}
+        {%- assign dec = dec | prepend: '0' -%}
+      {%- endif -%}
+    
+      {%- assign inteiro_str = inteiro | split: '' -%}
+      {%- assign out = '' -%}
+      {%- assign count = 0 -%}
+      {%- for d in inteiro_str reversed -%}
+        {%- assign out = d | append: out -%}
+        {%- assign count = count | plus: 1 -%}
+        {%- if count == 3 and forloop.index != forloop.length -%}
+          {%- assign out = '.' | append: out -%}
+          {%- assign count = 0 -%}
+        {%- endif -%}
+      {%- endfor -%}
+    
+      {%- assign formatted = out | append: "," | append: dec -%}
+    
+      {%- if forloop.first == false -%}
+        {%- assign formatted_map = formatted_map | append: "," -%}
+      {%- endif -%}
+    
+      {%- assign formatted_map = formatted_map | append: '"' | append: v | append: '_fmt":"' | append: formatted | append: '"' -%}
+    {%- endfor -%}
+    
+    {%- assign formatted_map = formatted_map | append: "}" -%}
+    
+    {% assign mawb_ou_hawb_clean = mawb_ou_hawb %}
+    <div class="wrapper">
+      <div class="row justify-between">
+        <div class="col">
+          <div class="row">
+            <div class="pa-10px fs-125">{{ awb_full_number | split: "-" | first }}</div>
+            <div class="border-a pa-10px fs-125">{{ airport_departure | slice: 0, 3 | upcase }}</div>
+            <div class="pa-10px fs-125">{{ awb_full_number | split: "-" | last }}</div>
+          </div>
+        </div>
+        <div class="col fs-125 middle mr-1">
+          {{awb_full_number}}
+        </div>
+      </div>
+      <div class="main-content">
+        <div class="row">
+          <div class="col w-50 border-r">
+            <div class="row h-3 fs-075">
+              <div class="col w-50 pa-05">Shipper Name and Address</div>
+              <div class="col w-50 border-l border-b pa-05">
+                Shipper's Account Number
+              </div>
+            </div>
+            <div class="pa-1">
+              
+              {% if mawb_ou_hawb_clean != blank %}
+                HEVILE LOGISTICA E CONS. INTL. LTDA. AV. ENG. DOMINGOS FERREIRA, 4060<br>
+                RECIFE - PE. Brazil. Zip Code: 51021-040<br>
+                Email: shipment-tracking@hevile.com.br Tel: +55 81 3465 1017<br>
+                CNPJ: 02255486000134
+              {% endif %}
+                
+              {% if mawb_ou_hawb_clean == blank %}
+                {{shipper_name}}. {{shipper_address}}
+                <br />
+                Email: {{shipper_email}}, Tel: {{shipper_phone}},
+                {{shipper_city}}, {{shipper_state}} {{shipper_zip}}.
+                {{shipper_country}} <br />
+                CNPJ {{shipper_cnpj}}
+              {% endif %}
+              
+            </div>
+          </div>
+          <div class="col w-50">
+            <div class="row pa-1">
+              <div class="col w-40">
+                <div class="fs-075">Not Negotiable</div>
+                <div class="fs-2 fw-900">Air Waybill</div>
+                <div class="fs-075">Issued By</div>
+              </div>
+              <div class="col w-60 pa-1">
+                {{issuer_name}} {{issuer_address}}
+              </div>
+            </div>
+            <div class="row pa-1 border-t fs-075">
+              Copies 1, 2 and 3 of this Air Waybill are originals and have the
+              same validity .
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-50 border-r">
+            <div class="row h-3 fs-075">
+              <div class="col w-50 pa-05">Consignee Name and Address</div>
+              <div class="col w-50 border-l border-b pa-05">
+                Consignee's Account Number
+              </div>
+            </div>
+            <div class="pa-1">
+              {{consignee_name}} {{consignee_address}}
+              <br />
+              {{consignee_email}}, Tel: {{consignee_phone}}, {{consignee_city}},
+              {{consignee_state}} - {{consignee_zip}}. {{consignee_country}}
+              <br />
+              EORI Nº: {{consignee_eori}}
+            </div>
+          </div>
+          <div class="col w-50 pa-1 fs-075">
+            It is agreed that the goods described herein are accepted in
+            apparent good order and condition (except as noted ) for carriage
+            SUBJECT TO THE CONDITIONS OF CONTRACT ON THE REVERSE HEREOF , ALL
+            GOODS MAY BE CARRIED BY ANY OTHER MEANS INCLUDING ROAD OR ANY OTHER
+            CARRIER UNLESS SPECIFIC CONTRARY INSTRUCTIONS ARE GIVEN HEREON BY
+            THE SHIPPER , AND SHIPPER AGREES THAT THE SHIPMENT MAY BE CARRIED
+            VIA INTERMEDIATE STOPPING PLACES WHICH THE CARRIER DEEMS APPROPRIATE
+            THE SHIPPER 'S ATTENTION IS DRAWN TO THE NOTICE CONCERNING CARRIER
+            'S LIMITATION OF LIABILITY . Shipper may increase such limitation of
+            liability by declaring a higher value for carriage and paying a
+            supplemental charge if required
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-50 border-r">
+            <div class="pa-1">
+              <div class="row fs-075">
+                Issuing Carrier's Agent Name and City
+              </div>
+              <div>
+                {{agent_name}} {{agent_address}}, {{agent_city}},
+                {{agent_state}}. {{agent_country}}
+              </div>
+            </div>
+            <div class="row border-t">
+              <div class="col w-50 pa-05">
+                <div class="row fs-075">Agent's IATA Code</div>
+                <div class="pt-05">{{agent_iata_code}}</div>
+              </div>
+              <div class="col w-50 border-l pa-05 fs-075">Account No</div>
+            </div>
+          </div>
+          <div class="col w-50 pa-1">
+            <div class="row fs-075">Accounting Information</div>
+            <div>
+              EX RATE USD 1,00 = BRL: {{exchange_rate}}
+              <br />
+              Contracting Party: {{ contracting_party }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-50 pa-05 border-r">
+            <div class="fs-075">
+              Airport of Departure (Addr. of First Carrier) and Requested
+              Routing
+            </div>
+            <div class="pt-05 fs-125 mg_5">{{ airport_departure }}</div>
+          </div>
+          <div class="col w-50">
+            <div class="row fs-075 center">
+              <div class="col w-30">Reference Number</div>
+              <div class="col w-40 border-x border-b">Shipping Information</div>
+              <div class="col w-30"></div>
+            </div>
+            <div class="row center">
+              <div class="col w-33"></div>
+              <div class="col w-33 border-x"></div>
+              <div class="col w-33"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-50">
+            <div class="row">
+              <div class="col border-r-fc center w-10 pa-05">
+                <div class="fs-075">To</div>
+                <div class="mg-5">{{route_to_1}}</div>
+              </div>
+              <div class="col border-r-fc w-50 pa-05">
+                <div class="fs-075">By First Carrier</div>
+                <div class="mg2 fs-075">{{first_carrier}}</div>
+              </div>
+              <div class="col border-r-fc center w-10 pa-05">
+                <div class="fs-075">to</div>
+                <div class="mg-5">{{route_to_2}}</div>
+              </div>
+              <div class="col border-r-fc center w-10 pa-05">
+                <div class="fs-075">by</div>
+                <div class="mg-5">{{carrier_code}}</div>
+              </div>
+              <div class="col border-r-fc center w-10 pa-05">
+                <div class="fs-075">to</div>
+                <div class="mg-5">{{route_to_3}}</div>
+              </div>
+              <div class="col border-r center w-10 pa-05">
+                <div class="fs-075">by</div>
+                <div class="mg-5">{{carrier_code_2}}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col w-50 center">
+            <div class="row">
+              <div class="col w-40">
+                <div class="row">
+                  <div class="col w-30">
+                    <div class="fs-075">Currency</div>
+                    <div class="mg-5">{{currency}}</div>
+                  </div>
+                  <div class="col w-10 fs-05 wt-division-r margin-left-wt"></div>
+                  <div class="col w-30 border-r-currency-1">
+                    <div class="row fs-075o border-b">&nbsp;&nbsp;&nbsp;WT/VAL</div>
+                    <div class="row fs-075o">
+                      <div class="col w-50 border-r-currency">
+                        PPD <br />{{wt_val_ppd}}
+                      </div>
+                      <div class="col w-50">COLL <br />{{wt_val_coll}}</div>
+                    </div>
+                  </div>
+                  <div class="col w-30">
+                    <div class="row fs-075o border-b border-r-other">&nbsp;&nbsp;&nbsp;&nbsp;Other</div>
+                    <div class="row fs-075o">
+                      <div class="col w-50 border-r-currency">
+                        PPD <br />{{other_ppd}}
+                      </div>
+                      <div class="col w-50 border-r-currency">COLL <br />{{other_coll}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col w-30 margin-left-dvfc wt-division-r">
+                <div class="row fs-075">Declared Value for Carriage</div>
+                <div class="pa-05 margin-left-dvfc mg-5">{{declared_value_carriage}}</div>
+              </div>
+              <div class="col w-30">
+                <div class="row fs-075">&nbsp;Declared Value for Customs</div>
+                <div class="pa-05 mg-5">{{declared_value_customs}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-50">
+            <div class="row">
+              <div class="col w-40 border-r pa-05">
+                <div class="row fs-075 center">Airport of Destination</div>
+                <div class="row">{{airport_destination}}</div>
+              </div>
+              <div class="col w-60 border-r">
+                <div class="row fs-075 center">
+                  <div class="col w-30">Flight Date</div>
+                  <div class="col w-40 border-x border-b">
+                    For Carrier Use Only
+                  </div>
+                  <div class="col w-30">Flight Date</div>
+                </div>
+                <div class="row center">
+                  <div class="col w-50 pa-05 border-r-flight">{{flight_info_1}}</div>
+                  <div class="col w-50 pa-05">{{flight_info_2}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col w-50">
+            <div class="row">
+              <div class="col w-25 border-r-insurance pa-05 fs-075">Amount of Insurance</div>
+              <div class="col w-75 px-05 fs-067">{{insurance_instructions}}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t pt-05 px-05 fs-075">Handling Information</div>
+        <div class="row pa-05">{{handling_instructions}}</div>
+        <div class="row">
+          <div class="col w-75 fs-075 pa-05">{{export_notice}}</div>
+          <div class="col w-25">
+            <div class="row fs-075">
+              <div class="col w-50 pt-05">{{diversion_notice}}</div>
+              <div class="col w-50 border-l border-t h-3 center pa-05">
+                {{sci_code}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row border-t">
+          <div class="col w-20 center">
+            <div class="row fs-075">
+              <div class="col w-40 border-r pa-05">
+                No. of
+                <br />Pieces <br />RCP
+              </div>
+              <div class="col w-50 border-r pa-05 middle">
+                Gross
+                <br />Weight
+              </div>
+              <div class="col w-10 border-r">kg <br />lb</div>
+            </div>
+          </div>
+          <div class="col w-10 border-r">
+            <div class="row fs-075 pl-05 border-b">Rate Class</div>
+            <div class="row fs-075 pl-05">Commodity <br />Item No.</div>
+          </div>
+          <div class="col w-10 border-r fs-075 center middle">
+            Chargeable Weight
+          </div>
+          <div class="col w-10 border-r fs-075 pa-05 center middle">
+            Rate / Charge
+          </div>
+          <div class="col w-15 border-r fs-075 pa-05 center middle">Total</div>
+          <div class="col w-35 fs-075 pa-05 center middle">
+            Nature and Quantity of Goods(Inc. Dimensions or Volume)
+          </div>
+        </div>
+
+        <div class="row border-t h-200">
+          <div class="col w-20">
+            <div class="row h-100">
+              <div class="col w-40 border-r pa-05">{{pieces}}</div>
+              <div class="col w-50 border-r pa-05">
+                {%- assign fmt = formatted_map | parse_json -%}
+                 {{ fmt.gross_weight_fmt }}
+              </div>
+              <div class="col w-10 border-r">{{ weight_unit }}</div>
+            </div>
+          </div>
+          <div class="col w-10 border-r"></div>
+          <div class="col w-10 border-r pa-05">{{ fmt.chargeable_weight_fmt }}</div>
+          <div class="col w-10 border-r pa-05">{{ fmt.rate_charge_fmt }}</div>
+          <div class="col w-15 border-r pa-05">{{ fmt.total_fmt }}</div>
+          <div class="col w-35 pa-05">
+                <div class="col w-60">
+                    <div class="row no-break">
+                        
+                        {% if mawb_ou_hawb_clean != blank %}
+                          Consolidation as per attached list<br>
+                          HAWB: {{ mawb_ou_hawb }}<br>
+                        {% endif %}
+
+                      {{ goods_description }}
+
+                    </div>
+                </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div class="row pa-05 fw-700">PLEASE ALSO NOTIFY:</div>
+          <div class="row pa-05">{{notify_company}}</div>
+          <div class="row pa-05">{{notify_address}}</div>
+        </div>
+
+        <div class="row">
+          <div class="col w-20">
+            <div class="row h-100">
+              <div class="col w-40 border-r border-t pa-05">{{pieces}}</div>
+              <div class="col w-50 border-r border-t pa-05">
+                {{ fmt.gross_weight_fmt }}
+              </div>
+              <div class="col w-10 border-r">{{weight_unit}}</div>
+            </div>
+          </div>
+          <div class="col w-10 border-r"></div>
+          <div class="col w-10 border-r"></div>
+          <div class="col w-10 border-r"></div>
+          <div class="col w-15 border-r pa-05 border-t">{{ fmt.total_fmt }}</div>
+          <div class="col w-35"></div>
+        </div>
+        <div class="row bs-t">
+          <div class="col w-40">
+            <div class="row fs-075 center">
+              <div class="col w-5"></div>
+              <div class="col bs-x bs-b w-20">Prepaid</div>
+              <div class="col w-5"></div>
+              <div class="col bs-x bs-b w-40">Weight Charge</div>
+              <div class="col w-5"></div>
+              <div class="col bs-x bs-b w-20">Collect</div>
+              <div class="col w-5 bs-r"></div>
+            </div>
+            <div class="row center bs-b">
+              <div class="col pa-05 w-50 bs-r center">
+                {{ fmt.weight_charge_prepaid_fmt }}
+              </div>
+              <div class="col pa-05 w-50 bs-r">{{ fmt.weight_charge_collect_fmt }}</div>
+            </div>
+            <div class="row fs-075 center">
+              <div class="col w-30"></div>
+              <div class="col bs-x bs-b w-40">Valuation Charge</div>
+              <div class="col w-30 bs-r"></div>
+            </div>
+            <div class="row center bs-b">
+              <div class="col pa-05 w-50 bs-r center">
+                {{ fmt.valuation_charge_prepaid_fmt }}
+              </div>
+              <div class="col pa-05 w-50 bs-r">
+                {{ fmt.valuation_charge_collect_fmt }}
+              </div>
+            </div>
+            <div class="row fs-075 center">
+              <div class="col w-40"></div>
+              <div class="col bs-x bs-b w-20">Tax</div>
+              <div class="col w-40 bs-r"></div>
+            </div>
+            <div class="row center">
+              <div class="col pa-05 w-50 bs-r center">{{ fmt.tax_prepaid_fmt }}</div>
+              <div class="col pa-05 w-50 bs-r">{{ fmt.tax_collect_fmt }}</div>
+            </div>
+          </div>
+
+          <div class="col w-60">
+            <div class="col w-60">
+              <div class="row pa-05 fs-075">Other Charges</div>
+                {% assign other_charges_clean = other_charges 
+                    | replace: '\\', '' 
+                    | replace: '[', '' 
+                    | replace: ']', '' 
+                %} 
+                
+                {% assign other_charges_array = other_charges_clean | split: '},{' %}
+                
+                {% for charge_string in other_charges_array %}
+                  {% assign charge_string = charge_string | prepend: '{' | append: '}' %}
+                
+                  {% assign code = charge_string 
+                      | split: '"code":"' | last 
+                      | split: '","value":"' | first 
+                      | replace: '"', '' 
+                  %}
+                
+                  {% assign value = charge_string 
+                      | split: '"value":"' | last 
+                      | split: '","' | first 
+                      | replace: '"', '' 
+                  %}
+
+              <div class="row px-05 justify-between charge-row">
+                <div>{{ code }}</div>
+                <div>{{ value }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="row bs-t">
+          <div class="col w-40">
+            <div class="row fs-075 center">
+              <div class="col w-15"></div>
+              <div class="col bs-x bs-b w-70">
+                Total Other Charges Due Agent
+              </div>
+              <div class="col w-15 bs-r"></div>
+            </div>
+            <div class="row center bs-b">
+              <div class="col pa-05 w-50 bs-r center">
+                {{ fmt.total_charges_agent_prepaid_fmt }}
+              </div>
+              <div class="col pa-05 w-50 bs-r">
+                {{ fmt.total_charges_agent_collect_fmt }}
+              </div>
+            </div>
+            <div class="row fs-075 center">
+              <div class="col w-15"></div>
+              <div class="col bs-x bs-b w-70">
+                Total Other Charges Due Carrier
+              </div>
+              <div class="col w-15 bs-r"></div>
+            </div>
+            <div class="row center bs-b">
+              <div class="col pa-05 w-50 bs-r center">
+                {{ fmt.total_charges_carrier_prepaid_fmt }}
+              </div>
+              <div class="col pa-05 w-50 bs-r">
+                {{ fmt.total_charges_carrier_collect_fmt }}
+              </div>
+            </div>
+            <div class="row center">
+              <div class="col pa-05 bs-r w-50">&nbsp;</div>
+              <div class="col pa-05 bs-r w-50">&nbsp;</div>
+            </div>
+          </div>
+
+          <div class="col pa-05 w-60">
+            <div class="row fs-075 mb-1">
+              Shipper certifies that the particulars on the face hereof are
+              correct and that insofar as any part of the consignment contains
+              dangerous goods, such part is property decribed by name and is in
+              proper condition for carriage by air according to the applicable
+              Dangerous Goods Regulations .
+            </div>
+            <div class="row bd-b">
+              HEVILE LOGISTICA E CONSULTORIA INTER LTD.
+              <br />Agente autorizado: {{ agente_autorizado }}
+            </div>
+            <div class="row fs-075 center">
+              Signature of Shipper or his Agent
+            </div>
+          </div>
+        </div>
+        <div class="row bs-t">
+          <div class="col w-40">
+            <div class="row fs-075 center">
+              <div class="col w-5"></div>
+              <div class="col bs-x bs-b w-40">Total Prepaid</div>
+              <div class="col w-5 bs-r"></div>
+              <div class="col w-5"></div>
+              <div class="col bs-x bs-b w-40">Total Collect</div>
+              <div class="col w-5 bs-r"></div>
+            </div>
+            <div class="row center bs-b">
+              <div class="col pa-05 w-50 bs-r center">{{ fmt.total_prepaid_fmt }}</div>
+              <div class="col pa-05 w-50 bs-r">{{ fmt.total_collect_fmt }}</div>
+            </div>
+            <div class="row center">
+              <div class="col w-5"></div>
+              <div class="col fs-075 bs-x bs-b w-40">
+                Currency Convertion Rates<br>
+                {{ convertion_values }}
+              </div>
+              <div class="col w-5 bs-r"></div>
+              <div class="col w-5"></div>
+              <div class="col fs-067 bs-x bs-b w-40">
+                CC Charges in Dest. Currency
+              </div>
+              <div class="col w-5 bs-r"></div>
+            </div>
+            <div class="row center">
+              <div class="col pa-05 w-50 bs-r center">
+                {{currency_conversion_rate}}
+              </div>
+              <div class="col pa-05 w-50 bs-r">
+                {{cc_charges_dest_currency}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col pa-05 w-60">
+            <div class="row fs-075 mb-1">
+              <br />
+              <br />
+              <br />
+            </div>
+            <div class="row bd-b">
+              <div class="col w-40">{{execution_date}}</div>
+              <div class="col w-60">{{execution_place}}</div>
+            </div>
+            <div class="row fs-075 center">
+              <div class="col w-30">Executed on (date)</div>
+              <div class="col w-30">at (place )</div>
+              <div class="col w-40">
+                Signature of Issuing Carrier or its Agent
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row bs-t">
+        <div class="ml-1 fs-075 col pa-05 w-20 center middle bs-x bs-b">
+          For Carriers Use only
+          <br />at Destination
+        </div>
+        <div class="fs-075 col w-20 bs-r bs-b-charges">
+          <div class="row">
+            <div class="col w-10"></div>
+            <div class="col fs-8 bs-x bs-b w-80 center">
+              Charges at Destination
+            </div>
+            <div class="col w-10"></div>
+          </div>
+          <div class="row">&nbsp;</div>
+        </div>
+        <div class="fs-075 col w-20 bs-r bs-b-charges">
+          <div class="row">
+            <div class="col w-10"></div>
+            <div class="col fs-8 bs-x bs-b w-80 center">
+              Total Collect Charges
+            </div>
+            <div class="col w-10"></div>
+          </div>
+          <div class="row">&nbsp;</div>
+        </div>
+        <div class="col w-40 right middle fs-15 mr-1">{{awb_full_number}}</div>
+      </div>
+    </div>
+    
+    <!-- DIVISÃO DE PAGINA -->
+    <div style="page-break-after: always;"></div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+          
+    {% if mawb_ou_hawb_clean != blank %}
+    
+      <div class="wrapper">
+        <div class="row justify-between">
+          <div class="col">
+            <div class="row">
+              <div class="pa-10px fs-125">{{ awb_full_number | split: "-" | first }}</div>
+              <div class="border-a pa-10px fs-125">{{ airport_departure | slice: 0, 3 | upcase }}</div>
+              <div class="pa-10px fs-125">{{ awb_full_number | split: "-" | last }}</div>
+            </div>
+          </div>
+          <div class="col fs-125 middle mr-1">
+  
+            {% if mawb_ou_hawb_clean == blank %}
+              {{awb_full_number}}
+            {% endif %}
+  
+            {% if mawb_ou_hawb_clean != blank %}
+              HAWB Nº: &nbsp;{{mawb_ou_hawb_clean}}
+            {% endif %}
+  
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="row">
+            <div class="col w-50 border-r">
+              <div class="row h-3 fs-075">
+                <div class="col w-50 pa-05">Shipper Name and Address</div>
+                <div class="col w-50 border-l border-b pa-05">
+                  Shipper's Account Number
+                </div>
+              </div>
+              <div class="pa-1">
+
+                {{shipper_name}}. {{shipper_address}}
+                <br />
+                Email: {{shipper_email}}, Tel: {{shipper_phone}},
+                {{shipper_city}}, {{shipper_state}} {{shipper_zip}}.
+                {{shipper_country}} <br />
+                CNPJ {{shipper_cnpj}}
+                
+              </div>
+            </div>
+            <div class="col w-50">
+              <div class="row pa-1">
+                <div class="col w-40">
+                  <div class="fs-075">Not Negotiable</div>
+                  <div class="fs-2 fw-900">Air Waybill</div>
+                  <div class="fs-075">Issued By</div>
+                </div>
+                <div class="col w-60 pa-1">
+                  {{issuer_name}} {{issuer_address}}
+                </div>
+              </div>
+              <div class="row pa-1 border-t fs-075">
+                Copies 1, 2 and 3 of this Air Waybill are originals and have the
+                same validity .
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-50 border-r">
+              <div class="row h-3 fs-075">
+                <div class="col w-50 pa-05">Consignee Name and Address</div>
+                <div class="col w-50 border-l border-b pa-05">
+                  Consignee's Account Number
+                </div>
+              </div>
+              <div class="pa-1">
+                {{consignee_name}} {{consignee_address}}
+                <br />
+                {{consignee_email}}, Tel: {{consignee_phone}}, {{consignee_city}},
+                {{consignee_state}} - {{consignee_zip}}. {{consignee_country}}
+                <br />
+                EORI Nº: {{consignee_eori}}
+              </div>
+            </div>
+            <div class="col w-50 pa-1 fs-075">
+              It is agreed that the goods described herein are accepted in
+              apparent good order and condition (except as noted ) for carriage
+              SUBJECT TO THE CONDITIONS OF CONTRACT ON THE REVERSE HEREOF , ALL
+              GOODS MAY BE CARRIED BY ANY OTHER MEANS INCLUDING ROAD OR ANY OTHER
+              CARRIER UNLESS SPECIFIC CONTRARY INSTRUCTIONS ARE GIVEN HEREON BY
+              THE SHIPPER , AND SHIPPER AGREES THAT THE SHIPMENT MAY BE CARRIED
+              VIA INTERMEDIATE STOPPING PLACES WHICH THE CARRIER DEEMS APPROPRIATE
+              THE SHIPPER 'S ATTENTION IS DRAWN TO THE NOTICE CONCERNING CARRIER
+              'S LIMITATION OF LIABILITY . Shipper may increase such limitation of
+              liability by declaring a higher value for carriage and paying a
+              supplemental charge if required
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-50 border-r">
+              <div class="pa-1">
+                <div class="row fs-075">
+                  Issuing Carrier's Agent Name and City
+                </div>
+                <div>
+                  {{agent_name}} {{agent_address}}, {{agent_city}},
+                  {{agent_state}}. {{agent_country}}
+                </div>
+              </div>
+              <div class="row border-t">
+                <div class="col w-50 pa-05">
+                  <div class="row fs-075">Agent's IATA Code</div>
+                  <div class="pt-05">{{agent_iata_code}}</div>
+                </div>
+                <div class="col w-50 border-l pa-05 fs-075">Account No</div>
+              </div>
+            </div>
+            <div class="col w-50 pa-1">
+              <div class="row fs-075">Accounting Information</div>
+              <div>
+                EX RATE USD 1,00 = BRL: {{exchange_rate}}
+                <br />
+                
+                {% if mawb_ou_hawb_clean == blank %}
+                  Contracting Party: {{ contracting_party }}
+                {% endif %}
+  
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-50 pa-05 border-r">
+              <div class="fs-075">
+                Airport of Departure (Addr. of First Carrier) and Requested
+                Routing
+              </div>
+              <div class="pt-05 fs-125 mg_5">{{ airport_departure }}</div>
+            </div>
+            <div class="col w-50">
+              <div class="row fs-075 center">
+                <div class="col w-30">Reference Number</div>
+                <div class="col w-40 border-x border-b">Shipping Information</div>
+                <div class="col w-30"></div>
+              </div>
+              <div class="row center">
+                <div class="col w-33"></div>
+                <div class="col w-33 border-x"></div>
+                <div class="col w-33"></div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-50">
+              <div class="row">
+                <div class="col border-r-fc center w-10 pa-05">
+                  <div class="fs-075">To</div>
+                  <div class="mg-5">{{route_to_1}}</div>
+                </div>
+                <div class="col border-r-fc w-50 pa-05">
+                  <div class="fs-075">By First Carrier</div>
+                  <div class="mg2 fs-075">{{first_carrier}}</div>
+                </div>
+                <div class="col border-r-fc center w-10 pa-05">
+                  <div class="fs-075">to</div>
+                  <div class="mg-5">{{route_to_2}}</div>
+                </div>
+                <div class="col border-r-fc center w-10 pa-05">
+                  <div class="fs-075">by</div>
+                  <div class="mg-5">{{carrier_code}}</div>
+                </div>
+                <div class="col border-r-fc center w-10 pa-05">
+                  <div class="fs-075">to</div>
+                  <div class="mg-5">{{route_to_3}}</div>
+                </div>
+                <div class="col border-r center w-10 pa-05">
+                  <div class="fs-075">by</div>
+                  <div class="mg-5">{{carrier_code_2}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col w-50 center">
+              <div class="row">
+                <div class="col w-40">
+                  <div class="row">
+                    <div class="col w-30">
+                      <div class="fs-075">Currency</div>
+                      <div class="mg-5">{{currency}}</div>
+                    </div>
+                    <div class="col w-10 fs-05 wt-division-r margin-left-wt"></div>
+                    <div class="col w-30 border-r-currency-1">
+                      <div class="row fs-075o border-b">&nbsp;&nbsp;&nbsp;WT/VAL</div>
+                      <div class="row fs-075o">
+                        <div class="col w-50 border-r-currency">
+                          PPD <br />{{wt_val_ppd}}
+                        </div>
+                        <div class="col w-50">COLL <br />{{wt_val_coll}}</div>
+                      </div>
+                    </div>
+                    <div class="col w-30">
+                      <div class="row fs-075o border-b border-r-other">&nbsp;&nbsp;&nbsp;&nbsp;Other</div>
+                      <div class="row fs-075o">
+                        <div class="col w-50 border-r-currency">
+                          PPD <br />{{other_ppd}}
+                        </div>
+                        <div class="col w-50 border-r-currency">COLL <br />{{other_coll}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col w-30 margin-left-dvfc wt-division-r">
+                  <div class="row fs-075">Declared Value for Carriage</div>
+                  <div class="pa-05 margin-left-dvfc mg-5">{{declared_value_carriage}}</div>
+                </div>
+                <div class="col w-30">
+                  <div class="row fs-075">&nbsp;Declared Value for Customs</div>
+                  <div class="pa-05 mg-5">{{declared_value_customs}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-50">
+              <div class="row">
+                <div class="col w-40 border-r pa-05">
+                  <div class="row fs-075 center">Airport of Destination</div>
+                  <div class="row">{{airport_destination}}</div>
+                </div>
+                <div class="col w-60 border-r">
+                  <div class="row fs-075 center">
+                    <div class="col w-30">Flight Date</div>
+                    <div class="col w-40 border-x border-b">
+                      For Carrier Use Only
+                    </div>
+                    <div class="col w-30">Flight Date</div>
+                  </div>
+                  <div class="row center">
+                    <div class="col w-50 pa-05 border-r-flight">{{flight_info_1}}</div>
+                    <div class="col w-50 pa-05">{{flight_info_2}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col w-50">
+              <div class="row">
+                <div class="col w-25 border-r-insurance pa-05 fs-075">Amount of Insurance</div>
+                <div class="col w-75 px-05 fs-067">{{insurance_instructions}}</div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t pt-05 px-05 fs-075">Handling Information</div>
+          <div class="row pa-05">{{handling_instructions}}</div>
+          <div class="row">
+            <div class="col w-75 fs-075 pa-05">{{export_notice}}</div>
+            <div class="col w-25">
+              <div class="row fs-075">
+                <div class="col w-50 pt-05">{{diversion_notice}}</div>
+                <div class="col w-50 border-l border-t h-3 center pa-05">
+                  {{sci_code}}
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="row border-t">
+            <div class="col w-20 center">
+              <div class="row fs-075">
+                <div class="col w-40 border-r pa-05">
+                  No. of
+                  <br />Pieces <br />RCP
+                </div>
+                <div class="col w-50 border-r pa-05 middle">
+                  Gross
+                  <br />Weight
+                </div>
+                <div class="col w-10 border-r">kg <br />lb</div>
+              </div>
+            </div>
+            <div class="col w-10 border-r">
+              <div class="row fs-075 pl-05 border-b">Rate Class</div>
+              <div class="row fs-075 pl-05">Commodity <br />Item No.</div>
+            </div>
+            <div class="col w-10 border-r fs-075 center middle">
+              Chargeable Weight
+            </div>
+            <div class="col w-10 border-r fs-075 pa-05 center middle">
+              Rate / Charge
+            </div>
+            <div class="col w-15 border-r fs-075 pa-05 center middle">Total</div>
+            <div class="col w-35 fs-075 pa-05 center middle">
+              Nature and Quantity of Goods(Inc. Dimensions or Volume)
+            </div>
+          </div>
+  
+          <div class="row border-t h-200">
+            <div class="col w-20">
+              <div class="row h-100">
+                <div class="col w-40 border-r pa-05">{{pieces}}</div>
+                <div class="col w-50 border-r pa-05">{{ fmt.gross_weight_fmt }}</div>
+                <div class="col w-10 border-r">{{weight_unit}}</div>
+              </div>
+            </div>
+            <div class="col w-10 border-r"></div>
+            <div class="col w-10 border-r pa-05">{{ fmt.chargeable_weight_fmt }}</div>
+            <div class="col w-10 border-r pa-05">{{ fmt.rate_charge_fmt }}</div>
+            <div class="col w-15 border-r pa-05">{{ fmt.total_fmt }}</div>
+            <div class="col w-35 pa-05">
+                  <div class="col w-60">
+                      <div class="row no-break">
+                        
+                        {{ goods_description }}
+  
+                      </div>
+                  </div>
+            </div>
+          </div>
+  
+          <div class="relative">
+            <div class="row pa-05 fw-700">PLEASE ALSO NOTIFY:</div>
+            <div class="row pa-05">{{notify_company}}</div>
+            <div class="row pa-05">{{notify_address}}</div>
+          </div>
+  
+          <div class="row">
+            <div class="col w-20">
+              <div class="row h-100">
+                <div class="col w-40 border-r border-t pa-05">{{pieces}}</div>
+                <div class="col w-50 border-r border-t pa-05">
+                  {{ fmt.gross_weight_fmt }}
+                </div>
+                <div class="col w-10 border-r">{{ fmt.weight_unit_fmt}}</div>
+              </div>
+            </div>
+            <div class="col w-10 border-r"></div>
+            <div class="col w-10 border-r"></div>
+            <div class="col w-10 border-r"></div>
+            <div class="col w-15 border-r pa-05 border-t">{{ fmt.total_fmt }}</div>
+            <div class="col w-35"></div>
+          </div>
+          <div class="row bs-t">
+            <div class="col w-40">
+              <div class="row fs-075 center">
+                <div class="col w-5"></div>
+                <div class="col bs-x bs-b w-20">Prepaid</div>
+                <div class="col w-5"></div>
+                <div class="col bs-x bs-b w-40">Weight Charge</div>
+                <div class="col w-5"></div>
+                <div class="col bs-x bs-b w-20">Collect</div>
+                <div class="col w-5 bs-r"></div>
+              </div>
+              <div class="row center bs-b">
+                <div class="col pa-05 w-50 bs-r center">
+                  {{ fmt.weight_charge_prepaid_fmt }}
+                </div>
+                <div class="col pa-05 w-50 bs-r">{{ fmt.weight_charge_collect_fmt }}</div>
+              </div>
+              <div class="row fs-075 center">
+                <div class="col w-30"></div>
+                <div class="col bs-x bs-b w-40">Valuation Charge</div>
+                <div class="col w-30 bs-r"></div>
+              </div>
+              <div class="row center bs-b">
+                <div class="col pa-05 w-50 bs-r center">
+                  {{ fmt.valuation_charge_prepaid_fmt }}
+                </div>
+                <div class="col pa-05 w-50 bs-r">
+                  {{ fmt.valuation_charge_collect_fmt }}
+                </div>
+              </div>
+              <div class="row fs-075 center">
+                <div class="col w-40"></div>
+                <div class="col bs-x bs-b w-20">Tax</div>
+                <div class="col w-40 bs-r"></div>
+              </div>
+              <div class="row center">
+                <div class="col pa-05 w-50 bs-r center">{{ fmt.tax_prepaid_fmt }}</div>
+                <div class="col pa-05 w-50 bs-r">{{ fmt.tax_collect_fmt }}</div>
+              </div>
+            </div>
+  
+            <div class="col w-60">
+              <div class="col w-60">
+                <div class="row pa-05 fs-075">Other Charges</div>
+                {% assign other_charges_clean = other_charges 
+                    | replace: '\\', '' 
+                    | replace: '[', '' 
+                    | replace: ']', '' 
+                %} 
+                
+                {% assign other_charges_array = other_charges_clean | split: '},{' %}
+                
+                {% for charge_string in other_charges_array %}
+                  {% assign charge_string = charge_string | prepend: '{' | append: '}' %}
+                
+                  {% assign code = charge_string 
+                      | split: '"code":"' | last 
+                      | split: '","value":"' | first 
+                      | replace: '"', '' 
+                  %}
+                
+                  {% assign value = charge_string 
+                      | split: '"value":"' | last 
+                      | split: '","' | first 
+                      | replace: '"', '' 
+                  %}
+  
+                <div class="row px-05 justify-between charge-row">
+                  <div>{{ code }}</div>
+                  <div>{{ value }}</div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="row bs-t">
+            <div class="col w-40">
+              <div class="row fs-075 center">
+                <div class="col w-15"></div>
+                <div class="col bs-x bs-b w-70">
+                  Total Other Charges Due Agent
+                </div>
+                <div class="col w-15 bs-r"></div>
+              </div>
+              <div class="row center bs-b">
+                <div class="col pa-05 w-50 bs-r center">
+                  {{ fmt.total_charges_agent_prepaid_fmt }}
+                </div>
+                <div class="col pa-05 w-50 bs-r">
+                  {{ fmt.total_charges_agent_collect_fmt }}
+                </div>
+              </div>
+              <div class="row fs-075 center">
+                <div class="col w-15"></div>
+                <div class="col bs-x bs-b w-70">
+                  Total Other Charges Due Carrier
+                </div>
+                <div class="col w-15 bs-r"></div>
+              </div>
+              <div class="row center bs-b">
+                <div class="col pa-05 w-50 bs-r center">
+                  {{ fmt.total_charges_carrier_prepaid_fmt }}
+                </div>
+                <div class="col pa-05 w-50 bs-r">
+                  {{ fmt.total_charges_carrier_collect_fmt }}
+                </div>
+              </div>
+              <div class="row center">
+                <div class="col pa-05 bs-r w-50">&nbsp;</div>
+                <div class="col pa-05 bs-r w-50">&nbsp;</div>
+              </div>
+            </div>
+  
+            <div class="col pa-05 w-60">
+              <div class="row fs-075 mb-1">
+                Shipper certifies that the particulars on the face hereof are
+                correct and that insofar as any part of the consignment contains
+                dangerous goods, such part is property decribed by name and is in
+                proper condition for carriage by air according to the applicable
+                Dangerous Goods Regulations .
+              </div>
+              <div class="row bd-b">
+                HEVILE LOGISTICA E CONSULTORIA INTER LTD.
+                <br />Agente autorizado: {{ agente_autorizado }}
+              </div>
+              <div class="row fs-075 center">
+                Signature of Shipper or his Agent
+              </div>
+            </div>
+          </div>
+          <div class="row bs-t">
+            <div class="col w-40">
+              <div class="row fs-075 center">
+                <div class="col w-5"></div>
+                <div class="col bs-x bs-b w-40">Total Prepaid</div>
+                <div class="col w-5 bs-r"></div>
+                <div class="col w-5"></div>
+                <div class="col bs-x bs-b w-40">Total Collect</div>
+                <div class="col w-5 bs-r"></div>
+              </div>
+              <div class="row center bs-b">
+                <div class="col pa-05 w-50 bs-r center">{{ fmt.total_prepaid_fmt }}</div>
+                <div class="col pa-05 w-50 bs-r">{{ fmt.total_collect_fmt }}</div>
+              </div>
+              <div class="row center">
+                <div class="col w-5"></div>
+                <div class="col fs-075 bs-x bs-b w-40">
+                  Currency Convertion Rates<br>
+                  {{ convertion_values }}
+                </div>
+                <div class="col w-5 bs-r"></div>
+                <div class="col w-5"></div>
+                <div class="col fs-067 bs-x bs-b w-40">
+                  CC Charges in Dest. Currency
+                </div>
+                <div class="col w-5 bs-r"></div>
+              </div>
+              <div class="row center">
+                <div class="col pa-05 w-50 bs-r center">
+                  {{currency_conversion_rate}}
+                </div>
+                <div class="col pa-05 w-50 bs-r">
+                  {{cc_charges_dest_currency}}
+                </div>
+              </div>
+            </div>
+  
+            <div class="col pa-05 w-60">
+              <div class="row fs-075 mb-1">
+                <br />
+                <br />
+                <br />
+              </div>
+              <div class="row bd-b">
+                <div class="col w-40">{{execution_date}}</div>
+                <div class="col w-60">{{execution_place}}</div>
+              </div>
+              <div class="row fs-075 center">
+                <div class="col w-30">Executed on (date)</div>
+                <div class="col w-30">at (place )</div>
+                <div class="col w-40">
+                  Signature of Issuing Carrier or its Agent
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row bs-t">
+          <div class="ml-1 fs-075 col pa-05 w-20 center middle bs-x bs-b">
+            For Carriers Use only
+            <br />at Destination
+          </div>
+          <div class="fs-075 col w-20 bs-r bs-b-charges">
+            <div class="row">
+              <div class="col w-10"></div>
+              <div class="col fs-8 bs-x bs-b w-80 center">
+                Charges at Destination
+              </div>
+              <div class="col w-10"></div>
+            </div>
+            <div class="row">&nbsp;</div>
+          </div>
+          <div class="fs-075 col w-20 bs-r bs-b-charges">
+            <div class="row">
+              <div class="col w-10"></div>
+              <div class="col fs-8 bs-x bs-b w-80 center">
+                Total Collect Charges
+              </div>
+              <div class="col w-10"></div>
+            </div>
+            <div class="row">&nbsp;</div>
+          </div>
+          <div class="col w-40 right middle fs-15 mr-1">{{awb_full_number}}</div>
+        </div>
+      </div>
+    {% endif %}
+
+  </body>
+</html>
