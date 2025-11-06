@@ -1,0 +1,15 @@
+{
+  "name": "pdf-generator",
+  "version": "1.0.0",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "juice": "^9.1.0",
+    "liquidjs": "^10.9.1",
+    "puppeteer": "^22.0.0"
+  }
+}
