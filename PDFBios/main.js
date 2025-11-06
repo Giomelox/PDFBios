@@ -1,60 +1,57 @@
-const { Liquid } = require("liquidjs");
-const juice = require("juice");
-const puppeteer = require("puppeteer");
-const fs = require("fs");
-const path = require("path");
-const readline = require("readline");
+import express from "express";
+import { Liquid } from "liquidjs";
+import juice from "juice";
+import puppeteer from "puppeteer";
+import fs from "fs";
+import path from "path";
 
-function askFileName(callback) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+const app = express();
+app.use(express.json());
+app.use(express.static(".")); // serve template.html, style.css, var.json, etc.
 
-  rl.question("Digite o nome do arquivo de saída (ex: relatorio): ", (answer) => {
-    rl.close();
-    callback(answer || "PDF gerado.pdf");
-  });
-}
+const __dirname = path.resolve();
 
-async function gerarPDF(htmlPath, cssPath, jsonPath, outputPath) {
-  // 1) Ler HTML e CSS
-  const htmlTemplate = fs.readFileSync(path.resolve(htmlPath), "utf8");
-  const cssCode = fs.readFileSync(path.resolve(cssPath), "utf8");
-
-  // 2) Ler JSON (se existir conteúdo válido)
-  let jsonData = {};
+app.post("/gerar", async (req, res) => {
   try {
-    const rawJson = fs.readFileSync(path.resolve(jsonPath), "utf8").trim();
-    if (rawJson) {
-      jsonData = JSON.parse(rawJson);
-    }
-  } catch (err) {
-    jsonData = {};
+    const { html = "template.html", css = "style.css", json = "var.json", nome = "relatorio" } = req.body;
+
+    // Ler arquivos
+    const htmlTemplate = fs.readFileSync(path.resolve(html), "utf8");
+    const cssCode = fs.readFileSync(path.resolve(css), "utf8");
+    const jsonData = JSON.parse(fs.readFileSync(path.resolve(json), "utf8"));
+
+    // LiquidJS
+    const engine = new Liquid();
+    const renderedHtml = await engine.parseAndRender(htmlTemplate, jsonData);
+
+    // Inserir CSS inline
+    const finalHtml = juice.inlineContent(renderedHtml, cssCode);
+
+    // Gerar PDF com Puppeteer
+    const outputFile = `${nome}.pdf`;
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // necessário no Cloud Run
+    });
+    const page = await browser.newPage();
+    await page.setContent(finalHtml, { waitUntil: "networkidle0" });
+    await page.pdf({
+      path: outputFile,
+      format: "A4",
+      printBackground: true,
+    });
+    await browser.close();
+
+    res.download(outputFile, outputFile, () => fs.unlinkSync(outputFile));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Erro ao gerar PDF");
   }
-
-  // 3) LiquidJS
-  const engine = new Liquid();
-  const renderedHtml = await engine.parseAndRender(htmlTemplate, jsonData);
-
-  // 4) Injetar CSS inline
-  const finalHtml = juice.inlineContent(renderedHtml, cssCode);
-
-  // 5) Puppeteer
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(finalHtml, { waitUntil: "networkidle0" });
-
-  await page.pdf({
-    path: outputPath,
-    format: "A4",
-    printBackground: true,
-  });
-
-  await browser.close();
-  console.log(`✅ PDF gerado em: ${outputPath}`);
-}
-
-askFileName((outputFile) => {
-  gerarPDF("template.html", "style.css", "var.json", outputFile + '.pdf');
 });
+
+// Rota raiz só pra testar!!!!!!!!!!!
+app.get("/", (req, res) => {
+  res.send(`<h1>Servidor rodando ✅</h1><p>Hello World</p>`);
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
